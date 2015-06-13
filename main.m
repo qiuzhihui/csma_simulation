@@ -19,7 +19,7 @@ clc
 % 
 % if length(frame_size)==0
 % 
-%    frame_size=10;
+%    frame_size=zeros(n+1,1)+10;
 % 
 % end
 % 
@@ -37,9 +37,10 @@ clc
 % %---------------------Input Parameters---------------------------}
 
  n=5;
- frame_size=5;
  simulation_time=100;
  back_off_base=4;
+ frame_size=zeros(n+1,1)+5;
+
 
 
 
@@ -78,9 +79,10 @@ first_frame_flag=zeros(n+1,1);
 % set simple case;
 comm_matrix(2,1)=1;
 comm_matrix(3,1)=1;
+frame_size(2,1)=10;
+frame_size(3,1)=5;
 
-first_frame_flag(2,1)=1;
-first_frame_flag(3,1)=1;
+
 
 
 

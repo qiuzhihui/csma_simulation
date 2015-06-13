@@ -29,7 +29,7 @@ function [status, timer,flag] = working_node(pre_status_matrix, pre_next_status_
         
         if(pre_status_matrix(i)==2 && pre_next_status_timer(i)==1) %DIFS end start sending data;
             status(i)=3;
-             timer(i) = frame_size;
+             timer(i) = frame_size(i);
              flag(i)=1;
         end
         

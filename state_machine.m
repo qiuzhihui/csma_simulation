@@ -34,12 +34,13 @@ function [status, timer,comm,counter,flag] = state_machine(pre_status_matrix, pr
                 
                 for j=1:len         %check if we receive message
                     if(pre_comm_matrix(j)==i&&pre_status_matrix(j,2)==3&&first_frame_flag(j)==1) 
+                        frame_size(i)=frame_size(j);
                         count=count+1;
                     end
                 end
                 if count==1         % need to receive message
                     status(i)=7;    % go to ceceive state
-                    timer(i)=frame_size;
+                    timer(i)=frame_size(i);
                     comm(i)=pre_comm_matrix(i);
               
                 elseif(pre_comm_matrix(i)==0) % don need ack message check comm matrix  nothing to send stay idle
@@ -82,7 +83,7 @@ function [status, timer,comm,counter,flag] = state_machine(pre_status_matrix, pr
                 comm(i)=pre_comm_matrix(i); 
                 if(pre_status_matrix(i,2)==3)  % already start sending data
                     status(i)=3;
-                    timer(i)=frame_size;
+                    timer(i)=frame_size(i);
                 else
                     for j=1:len
                         if(i~=j && pre_status_matrix(j,2)==3 || pre_status_matrix(j,2)==5) %channel is busy
@@ -98,7 +99,7 @@ function [status, timer,comm,counter,flag] = state_machine(pre_status_matrix, pr
 
                     if(status(i)==2 && timer(i)==0) %finish DIFS start sending Data
                         status(i)=3;
-                        timer(i)=frame_size;
+                        timer(i)=frame_size(i);
                         flag(i)=1;
                     end
                 end
@@ -195,7 +196,7 @@ function [status, timer,comm,counter,flag] = state_machine(pre_status_matrix, pr
                 end
                 if count==1         % need to receive message
                     status(i)=7;    % go to ceceive state
-                    timer(i)=frame_size;
+                    timer(i)=frame_size(i);
                     comm(i)=pre_comm_matrix(i);
               
                 
