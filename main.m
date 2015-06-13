@@ -73,10 +73,15 @@ status_matrix =  zeros(n+1,simulation_time);  %status of each node, the first ro
 next_status_timer = zeros(n+1,simulation_time); %count the time left for current status
 comm_matrix = zeros(n+1,simulation_time);     %which node has something to send at the time
 back_off_counter=zeros(n+1,1);
+first_frame_flag=zeros(n+1,1);
 
 % set simple case;
-comm_matrix(1,1)=2;
 comm_matrix(2,1)=1;
+comm_matrix(3,1)=1;
+
+first_frame_flag(2,1)=1;
+first_frame_flag(3,1)=1;
+
 
 
 
@@ -88,18 +93,21 @@ for clock= 2: simulation_time
 
     %comm_table is not 0 means have something to send;
     %first fill the current status matrix with sending status;
-    [status,timer] = working_node(status_matrix(:,clock-1),next_status_timer(:,clock-1));
+    [status,timer,flag] = working_node(status_matrix(:,clock-1),next_status_timer(:,clock-1),frame_size,first_frame_flag);
     status_matrix(:,clock) = status;
     next_status_timer(:,clock) = timer;
-    
+    first_frame_flag = flag;
+
     
     %now update current status and timer based on previous status and timer
     %update comm_matrix also;
-    [status,timer,comm,counter] = state_machine(status_matrix(:,clock-1:clock),next_status_timer(:,clock-1),comm_matrix(:,clock-1),frame_size,back_off_counter);
+    [status,timer,comm,counter,flag] = state_machine(status_matrix(:,clock-1:clock),next_status_timer(:,clock-1),comm_matrix(:,clock-1)...
+        ,frame_size,back_off_counter,first_frame_flag);
     status_matrix(:,clock) = status;
     next_status_timer(:,clock) = timer;
     comm_matrix(:,clock) = comm;
     back_off_counter = counter;
+    first_frame_flag = flag;
 
     ss=1;
 

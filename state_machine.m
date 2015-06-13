@@ -1,4 +1,5 @@
-function [status, timer,comm,counter] = state_machine(pre_status_matrix, pre_next_status_timer,pre_comm_matrix,frame_size,back_off_counter)
+function [status, timer,comm,counter,flag] = state_machine(pre_status_matrix, pre_next_status_timer,pre_comm_matrix,frame_size...
+    ,back_off_counter,first_frame_flag)
 
 
     %Stacte table
@@ -21,6 +22,7 @@ function [status, timer,comm,counter] = state_machine(pre_status_matrix, pre_nex
     timer=zeros(len,1);
     comm = zeros(len,1);
     counter=back_off_counter;
+    flag=first_frame_flag;
     
     
     for i=1:len  % go through each nodes;
@@ -30,14 +32,14 @@ function [status, timer,comm,counter] = state_machine(pre_status_matrix, pre_nex
             
             case 0 %pre state is idle
                 
-                for j=1:len         %check if we need send ack message
-                    if(pre_comm_matrix(j)==i&&pre_status_matrix(j,1)==3&&pre_next_status_timer(j)==1) 
+                for j=1:len         %check if we receive message
+                    if(pre_comm_matrix(j)==i&&pre_status_matrix(j,2)==3&&first_frame_flag(j)==1) 
                         count=count+1;
                     end
                 end
-                if count==1         % need to send ack message
-                    status(i)=4;    % wait for SIFS
-                    timer(i)=2;
+                if count==1         % need to receive message
+                    status(i)=7;    % go to ceceive state
+                    timer(i)=frame_size;
                     comm(i)=pre_comm_matrix(i);
               
                 elseif(pre_comm_matrix(i)==0) % don need ack message check comm matrix  nothing to send stay idle
@@ -47,7 +49,7 @@ function [status, timer,comm,counter] = state_machine(pre_status_matrix, pre_nex
                 else  %have something to send check if channel is busy
                     comm(i)=pre_comm_matrix(i); 
                     for j=1:len
-                        if(pre_status_matrix(j,2)==3||pre_status_matrix(j,2)==5) %channel is busy
+                        if(i~=j && pre_status_matrix(j,2)==3||pre_status_matrix(j,2)==5) %channel is busy
                             status(i)=1;
                             timer(i)=0;
                             busy_flag=1;
@@ -76,23 +78,29 @@ function [status, timer,comm,counter] = state_machine(pre_status_matrix, pre_nex
                 end
 
                 
-            case 2 %pre state is waiting DFS                
+            case 2 %pre state is waiting DFS
                 comm(i)=pre_comm_matrix(i); 
-                for j=1:len
-                    if(pre_status_matrix(j,2)==3||pre_status_matrix(j,2)==5) %channel is busy
-                        status(i)=1;
-                        timer(i)=0;
-                    end
-                end
-                
-                if(status(i)~=1)   % channel is not busy
-                    status(i)=2;
-                    timer(i)=pre_next_status_timer(i)-1;
-                end
-                
-                if(status(i)==2 && timer(i)==0) %finish DIFS start sending Data
+                if(pre_status_matrix(i,2)==3)  % already start sending data
                     status(i)=3;
                     timer(i)=frame_size;
+                else
+                    for j=1:len
+                        if(i~=j && pre_status_matrix(j,2)==3 || pre_status_matrix(j,2)==5) %channel is busy
+                            status(i)=1;
+                            timer(i)=0;
+                        end
+                    end
+
+                    if(status(i)~=1)   % channel is not busy
+                        status(i)=2;
+                        timer(i)=pre_next_status_timer(i)-1;
+                    end
+
+                    if(status(i)==2 && timer(i)==0) %finish DIFS start sending Data
+                        status(i)=3;
+                        timer(i)=frame_size;
+                        flag(i)=1;
+                    end
                 end
                 
                 
@@ -100,6 +108,7 @@ function [status, timer,comm,counter] = state_machine(pre_status_matrix, pre_nex
                 comm(i)=pre_comm_matrix(i);    %keep sending and timer -1
                 status(i)=3;
                 timer(i)=pre_next_status_timer(i)-1;
+                flag(i)=0;
                 
                 if(timer(i)==0)       %finished sending data, begin waite for ACK
                     status(i)=6;
@@ -162,26 +171,53 @@ function [status, timer,comm,counter] = state_machine(pre_status_matrix, pre_nex
                     
                 end
                 
+            case 7 %pre state is receiving message
+                comm(i)=pre_comm_matrix(i);
+                status(i)=7;
+                timer(i)=pre_next_status_timer(i)-1;
+                
+                if(timer(i)==0)   %finished receiving begin SIFS
+                    status(i)= 4;
+                    timer(i)=2;
+                end
+                
+                
+                
+                
                 
             case -1 %pre state is Random back-off (Data collision)
                 comm(i)=pre_comm_matrix(i);
                 
-                for j=1:len % check if channel is busy
-                    if(pre_status_matrix(j,2)==3||pre_status_matrix(j,2)==5) %channel is busy
-                        status(i)=-1;
-                        timer(i)=pre_next_status_timer(i);
-                        busy_flag=1;
+                for j=1:len         %check if we receive message
+                    if(pre_comm_matrix(j)==i&&pre_status_matrix(j,2)==3&&first_frame_flag(j)==1) 
+                        count=count+1;
                     end
                 end
+                if count==1         % need to receive message
+                    status(i)=7;    % go to ceceive state
+                    timer(i)=frame_size;
+                    comm(i)=pre_comm_matrix(i);
+              
                 
-                if(busy_flag==0)   % channel is not busy
-                    status(i)=-1;
-                    timer(i)=pre_next_status_timer(i)-1;
-                end
-                
-                if(timer(i)==0) %finished random back-off
-                    status(i)=0;
-                    timer(i)=0;
+                else
+                    for j=1:len % check if channel is busy
+                        if(pre_status_matrix(j,2)==3||pre_status_matrix(j,2)==5) %channel is busy
+                            status(i)=-1;
+                            timer(i)=pre_next_status_timer(i);
+                            busy_flag=1;
+                        end
+                    end
+
+                    if(busy_flag==0)   % channel is not busy
+                        status(i)=-1;
+                        timer(i)=pre_next_status_timer(i)-1;
+                    end
+
+                    if(timer(i)==0) %finished random back-off
+                        status(i)=0;
+                        timer(i)=0;
+                    end
+                    
                 end
                 
                 
