@@ -37,7 +37,7 @@ clc
 % %---------------------Input Parameters---------------------------}
 
  n=5;
- simulation_time=50;
+ simulation_time=30;
  back_off_base=4;
  frame_size=zeros(n+1,1)+5;
 
@@ -79,8 +79,6 @@ first_frame_flag=zeros(n+1,1);
 % set simple case;
 comm_matrix(2,1)=1;
 frame_size(2,1)=5;
-comm_matrix(3,1)=1;
-frame_size(3,1)=5;
 
 
 
@@ -130,7 +128,7 @@ hStrings = text(x(:),y(:),textStrings(:)...      %# Plot the strings
                 );      
             
 
-set(gca,'YTick',1:n+1,...                       %# Change the axes tick marks
+set(gca,'YTick',1:6,...                       %# Change the axes tick marks
 'YTickLabel',{'Master','Slave1','Slave2','Slave3','Slave4','Slave5'},...
 'TickLength',[0 0]);
 
