@@ -37,9 +37,15 @@ clc
 % %---------------------Input Parameters---------------------------}
 
  n=5;
- simulation_time=50;
+ simulation_time=100;
  back_off_base=4;
- frame_size=zeros(n+1,1)+5;
+ frame_size=zeros(n+1,1)+10;
+ max_DIFS=4;
+ visualize=1;
+ r=3;
+ random_prob=0.02;
+
+
 
 
 
@@ -73,20 +79,53 @@ clc
 status_matrix =  zeros(n+1,simulation_time);  %status of each node, the first row is master's status
 next_status_timer = zeros(n+1,simulation_time); %count the time left for current status
 comm_matrix = zeros(n+1,simulation_time);     %which node has something to send at the time
+ack_matrix = zeros(n+1,simulation_time);
 back_off_counter=zeros(n+1,1);
 first_frame_flag=zeros(n+1,1);
+priority_matrix=zeros(n+1,1);   %now we only support 2 priorities high and low their DIFS is 3 and 4 slots
 
-% set simple case;
-comm_matrix(2,1)=1;
-frame_size(2,1)=5;
-comm_matrix(3,1)=1;
-frame_size(3,1)=5;
 
+
+
+
+if visualize==1
+    masterx=0;
+    mastery=0;
+    figure
+    %plot master and slave nodes
+    plot(masterx,mastery,'ko','markersize',16);
+    hold on;
+    x_position=zeros(1,n);
+    y_position=zeros(1,n);
+    for i=1:360/n:360
+        x_position(floor(i*n/360)+1)=r*sin(i/360*2*pi);
+        y_position(floor(i*n/360)+1)=r*cos(i/360*2*pi);
+        plot(x_position(floor(i*n/360)+1),y_position(floor(i*n/360)+1),'bo','markersize',10);
+
+    end 
+    x_position=[masterx x_position];
+    y_position=[mastery y_position];
+    axis([-5 5 -5 5]);
+end
 
 
 
 for clock= 2: simulation_time
 
+    
+   for i=1:n+1
+        if(comm_matrix(i,clock-1)==0&&status_matrix(i,clock-1)~=7)
+            if(rand(1)<random_prob)
+                random=randi(n);
+                if(random==i) 
+                    random=random+1;
+                end
+                comm_matrix(i,clock-1)=random;
+            end
+        end
+
+    end    
+    
     %comm_table is not 0 means have something to send;
     %first fill the current status matrix with sending status;
     [status,timer,flag] = working_node(status_matrix(:,clock-1),next_status_timer(:,clock-1),frame_size,first_frame_flag);
@@ -95,15 +134,19 @@ for clock= 2: simulation_time
     first_frame_flag = flag;
 
     
+    
+
+    
     %now update current status and timer based on previous status and timer
     %update comm_matrix also;
-    [status,timer,comm,counter,flag] = state_machine(status_matrix(:,clock-1:clock),next_status_timer(:,clock-1),comm_matrix(:,clock-1)...
-        ,frame_size,back_off_counter,first_frame_flag);
+    [status,timer,comm,counter,flag,ack] = state_machine(status_matrix(:,clock-1:clock),next_status_timer(:,clock-1),comm_matrix(:,clock-1)...
+        ,frame_size,back_off_counter,first_frame_flag,priority_matrix,max_DIFS,x_position,y_position,ack_matrix(:,clock-1));
     status_matrix(:,clock) = status;
     next_status_timer(:,clock) = timer;
     comm_matrix(:,clock) = comm;
     back_off_counter = counter;
     first_frame_flag = flag;
+    ack_matrix(:,clock)=ack;
 
     ss=1;
 
@@ -117,7 +160,7 @@ next_status_timer
 
 
 
-
+figure
 %Visualize states Matrix 
 imagesc(status_matrix);            %# Create a colored plot of the matrix values
 %colormap(flipud(gray));  %# Change the colormap to gray (so higher values are
@@ -133,6 +176,8 @@ hStrings = text(x(:),y(:),textStrings(:)...      %# Plot the strings
 set(gca,'YTick',1:n+1,...                       %# Change the axes tick marks
 'YTickLabel',{'Master','Slave1','Slave2','Slave3','Slave4','Slave5'},...
 'TickLength',[0 0]);
+
+title('CSMA/CA Simulation result')
 
 sss=1;
 

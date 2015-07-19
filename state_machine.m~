@@ -79,10 +79,6 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                     status(i)=7;    % go to ceceive state
                     timer(i)=frame_size(i);
                     comm(i)=pre_comm_matrix(i);
-                    
-                    
-                    
-                    
                 else                %then keep sensing the channel
                     for j=1:len
                         if(pre_status_matrix(j,2)==3||pre_status_matrix(j,2)==5) %channel is busy
