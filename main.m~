@@ -43,8 +43,8 @@ clc
  max_DIFS=4;
  visualize=1;
  r=3;
- random_prob=0.02;
- movepara=10;
+ random_prob=0.01;
+ movepara=3;
 
 
 
@@ -91,6 +91,7 @@ comm_matrix(3,1)=1;
 
 
 if visualize==1
+    figure
     masterx=0;
     mastery=0;
     figure
@@ -120,13 +121,14 @@ end
 for clock= 2: simulation_time
     %random location generator 
    if visualize==1
+   
        random = (rand(2,n+1)-0.5)/movepara;
        position=position+random;
        x_position=position(1,:);
        y_position=position(2,:);
-       for i=1:n+1
-           set(h(i),'XData',position(1,i),'YData',position(2,i))
-           pause(0.01);
+       plot(x_position(1),y_position(1),'or','MarkerSize',16,'MarkerEdgeColor','k','Marker','o');
+       for i=2:n+1
+           plot(x_position(i),y_position(i),'or','MarkerSize',10,'MarkerEdgeColor','b','Marker','o');
        end
    
    end
