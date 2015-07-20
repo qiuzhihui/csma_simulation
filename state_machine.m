@@ -33,16 +33,23 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
             
             case 0 %pre state is idle
                 
+                    
+                    
+                    
                 for j=1:len         %check if we receive message
-                    if(pre_comm_matrix(j)==i&&pre_status_matrix(j,2)==3&&first_frame_flag(j)==1) 
+                    if(pre_status_matrix(j,2)==3&&first_frame_flag(j)==1) 
                         frame_size(i)=frame_size(j);
                         count=count+1;
+                        tmp=pre_comm_matrix(j);
+
                     end
                 end
-                if count==1         % need to receive message
+                if (count==1&&tmp==i)         % need to receive message
                     status(i)=7;    % go to ceceive state
                     timer(i)=frame_size(i);
-                    comm(i)=pre_comm_matrix(i);
+                    comm(i)=pre_comm_matrix(i);    
+                    
+                    
               
                 elseif(pre_comm_matrix(i)==0) % don need ack message check comm matrix  nothing to send stay idle
                     status(i)=0;
@@ -70,15 +77,17 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                 comm(i)=pre_comm_matrix(i); 
                 
                 for j=1:len         %check if we receive message
-                    if(pre_comm_matrix(j)==i&&pre_status_matrix(j,2)==3&&first_frame_flag(j)==1)                     
+                    if(pre_status_matrix(j,2)==3&&first_frame_flag(j)==1) 
                         frame_size(i)=frame_size(j);
                         count=count+1;
+                        tmp=pre_comm_matrix(j);
+
                     end
                 end
-                if count==1         % need to receive message
-                    status(i)=7;    % go to ceceive state
+                if (count==1&&tmp==i)         % need to receive message
+                    status(i)=7;              % go to ceceive state
                     timer(i)=frame_size(i);
-                    comm(i)=pre_comm_matrix(i);
+                    comm(i)=pre_comm_matrix(i);  
                     
                     
                     
@@ -107,32 +116,18 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                     dx=x_position(comm(i));
                     dy=y_position(comm(i));
                     plot_line(sx,sy,dx,dy,'y')
+                    
+                    
+                    
+                    
+                    
                 else
                     for j=1:len
                         if(i~=j && pre_status_matrix(j,2)==3 || pre_status_matrix(j,2)==5) %channel is busy
                             
-                            
-                            
-                            for k=1:len         %check if we receive message
-                                if(pre_comm_matrix(k)==i&&pre_status_matrix(k,2)==3&&first_frame_flag(k)==1) 
-                                    frame_size(i)=frame_size(k);
-                                    count=count+1;
-                                end
-                            end
-                            if count==1         % need to receive message
-                                status(i)=7;    % go to ceceive state
-                                timer(i)=frame_size(i);
-                                comm(i)=pre_comm_matrix(i);
-                            else
-                            
-                            
-                            
                                 status(i)=1;
                                 timer(i)=0;
                                 
-                                
-                                
-                            end
                         end
                     end
 
@@ -151,6 +146,23 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                         dy=y_position(comm(i));
                         plot_line(sx,sy,dx,dy,'y')
                     end
+                    
+                    
+                    for k=1:len         %check if we receive message
+                        if(pre_status_matrix(k,2)==3&&first_frame_flag(k)==1) 
+                            frame_size(i)=frame_size(k);
+                            count=count+1;
+                            tmp=pre_comm_matrix(k);
+                        end
+                    end
+                    if (count==1&&tmp==i)          % need to receive message
+                        status(i)=7;               % go to ceceive state
+                        timer(i)=frame_size(i);
+                        comm(i)=pre_comm_matrix(i);
+                    end
+                    
+                    
+                    
                 end
                 
                 
@@ -216,21 +228,6 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                                 counter(i)=0;   %flash counter when the data is successfully sended
                                 
                                 
-                                for k=1:len         %check if we receive message
-                                    if(pre_comm_matrix(k)==i&&pre_status_matrix(k,2)==3&&first_frame_flag(k)==1) 
-                                        frame_size(i)=frame_size(k);
-                                        count=count+1;
-                                    end
-                                end
-                                if count==1         % need to receive message
-                                    status(i)=7;    % go to ceceive state
-                                    timer(i)=frame_size(i);
-                                    comm(i)=pre_comm_matrix(i);
-                                end
-                                
-                                
-                                
-                                
                                 
                             else %collision happend random exponential back-off
                                 status(i)=-1;
@@ -245,7 +242,23 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                                     comm(i)=0;
                                 end
 
+                           end
+                            
+                           for k=1:len         %check if we receive message
+                                if(pre_status_matrix(k,2)==3&&first_frame_flag(k)==1) 
+                                    frame_size(i)=frame_size(k);
+                                    count=count+1;
+                                    tmp=pre_comm_matrix(k);
+                                end
                             end
+                            if (count==1&&tmp==i)          % need to receive message
+                                status(i)=7;               % go to ceceive state
+                                timer(i)=frame_size(i);
+                                comm(i)=pre_comm_matrix(i);
+                            end
+                            
+                           
+                           
                     
                 end
                 
@@ -271,15 +284,18 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
             case -1 %pre state is Random back-off (Data collision)
                 comm(i)=pre_comm_matrix(i);
                 
-                for j=1:len         %check if we receive message
-                    if(pre_comm_matrix(j)==i&&pre_status_matrix(j,2)==3&&first_frame_flag(j)==1) 
+                for k=1:len         %check if we receive message
+                    if(pre_status_matrix(k,2)==3&&first_frame_flag(k)==1) 
+                        frame_size(i)=frame_size(k);
                         count=count+1;
+                        tmp=pre_comm_matrix(k);
                     end
                 end
-                if count==1         % need to receive message
-                    status(i)=7;    % go to ceceive state
+                if (count==1&&tmp==i)          % need to receive message
+                    status(i)=7;               % go to ceceive state
                     timer(i)=frame_size(i);
                     comm(i)=pre_comm_matrix(i);
+                
               
                 
                 else

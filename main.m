@@ -43,7 +43,7 @@ clc
  max_DIFS=4;
  visualize=1;
  r=3;
- random_prob=0.02;
+ random_prob=0.01;
 
 
 
@@ -85,7 +85,8 @@ first_frame_flag=zeros(n+1,1);
 priority_matrix=zeros(n+1,1);   %now we only support 2 priorities high and low their DIFS is 3 and 4 slots
 
 
-
+comm_matrix(2,1)=1;
+comm_matrix(3,1)=1;
 
 
 if visualize==1
@@ -117,10 +118,11 @@ for clock= 2: simulation_time
         if(comm_matrix(i,clock-1)==0&&status_matrix(i,clock-1)~=7)
             if(rand(1)<random_prob)
                 random=randi(n);
-                if(random==i) 
+                if(random>=i) 
                     random=random+1;
                 end
                 comm_matrix(i,clock-1)=random;
+                first_frame_flag(i)=1;
             end
         end
 
