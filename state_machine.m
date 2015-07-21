@@ -1,7 +1,7 @@
 function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix, pre_next_status_timer,pre_comm_matrix,frame_size...
     ,back_off_counter,first_frame_flag,priority_matrix,max_DIFS,x_position,y_position,ack_matrix)
 
-
+    global plot_flag;
     %Stacte table
     % 0: idle(nothing to send)
     % 1: waiting for the media available (have something to send)
@@ -111,11 +111,18 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                 if(pre_status_matrix(i,2)==3)  % already start sending data
                     status(i)=3;
                     timer(i)=frame_size(i);
-                    sx=x_position(i);
-                    sy=y_position(i);
-                    dx=x_position(comm(i));
-                    dy=y_position(comm(i));
-                    plot_line(sx,sy,dx,dy,'y')
+%                     sx=x_position(i);
+%                     sy=y_position(i);
+%                     dx=x_position(comm(i));
+%                     dy=y_position(comm(i));
+%                     plot_line(sx,sy,dx,dy,'y')
+                    plot_flag(i,1)=1;
+                    plot_flag(i,2)=1;
+                    plot_flag(i,3)=x_position(i);
+                    plot_flag(i,4)=y_position(i);
+                    plot_flag(i,5)=x_position(comm(i));
+                    plot_flag(i,6)=y_position(comm(i));
+                    
                     
                     
                     
@@ -140,11 +147,12 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                         status(i)=3;
                         timer(i)=frame_size(i);
                         flag(i)=1;
-                        sx=x_position(i);
-                        sy=y_position(i);
-                        dx=x_position(comm(i));
-                        dy=y_position(comm(i));
-                        plot_line(sx,sy,dx,dy,'y')
+                        plot_flag(i,1)=1;
+                        plot_flag(i,2)=1;
+                        plot_flag(i,3)=x_position(i);
+                        plot_flag(i,4)=y_position(i);
+                        plot_flag(i,5)=x_position(comm(i));
+                        plot_flag(i,6)=y_position(comm(i));
                     end
                     
                     
@@ -189,11 +197,17 @@ function [status, timer,comm,counter,flag,ack] = state_machine(pre_status_matrix
                 if(timer(i)==0)   %finished waiting SIFS 
                     status(i)= 5;
                     timer(i)=2;
-                    sx=x_position(i);
-                    sy=y_position(i);
-                    dx=x_position(ack(i));
-                    dy=y_position(ack(i));
-                    plot_line(sx,sy,dx,dy,'g')
+%                     sx=x_position(i);
+%                     sy=y_position(i);
+%                     dx=x_position(ack(i));
+%                     dy=y_position(ack(i));
+%                     plot_line(sx,sy,dx,dy,'g')
+                    plot_flag(i,1)=1;
+                    plot_flag(i,2)=2;
+                    plot_flag(i,3)=x_position(i);
+                    plot_flag(i,4)=y_position(i);
+                    plot_flag(i,5)=x_position(ack(i));
+                    plot_flag(i,6)=y_position(ack(i));
                     
                 end
                 

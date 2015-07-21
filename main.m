@@ -6,6 +6,8 @@ clear all
 close all
 clc
 
+
+
 % %---------------------Input Parameters---------------------------{
 % n=input('Number of nodes [5]? ');
 % 
@@ -43,11 +45,12 @@ clc
  max_DIFS=4;
  visualize=1;
  r=3;
- random_prob=0.02;
- movepara=10;
+ random_prob=0.05;
+ movepara=5;
 
 
-
+global plot_flag;
+plot_flag=zeros(n+1,6);  %col1:flag  col2:send/ack col3:sendingx col4 sendingy col5:revx col6 revy
 
 
 
@@ -86,8 +89,8 @@ first_frame_flag=zeros(n+1,1);
 priority_matrix=zeros(n+1,1);   %now we only support 2 priorities high and low their DIFS is 3 and 4 slots
 
 
-comm_matrix(2,1)=1;
-comm_matrix(3,1)=1;
+%comm_matrix(2,1)=1;
+%comm_matrix(3,1)=1;
 
 
 if visualize==1
@@ -118,7 +121,8 @@ end
 
 
 for clock= 2: simulation_time
-    %random location generator 
+    
+   %random location generator 
    if visualize==1
        random = (rand(2,n+1)-0.5)/movepara;
        position=position+random;
@@ -126,9 +130,8 @@ for clock= 2: simulation_time
        y_position=position(2,:);
        for i=1:n+1
            set(h(i),'XData',position(1,i),'YData',position(2,i))
-           pause(0.01);
+           pause(0.015);
        end
-   
    end
     
     
@@ -170,6 +173,19 @@ for clock= 2: simulation_time
     back_off_counter = counter;
     first_frame_flag = flag;
     ack_matrix(:,clock)=ack;
+    
+    
+    
+    
+    
+    %plot the sending/Ack signal
+
+    if visualize==1
+        if(sum(plot_flag(:,1))>=1)
+            plot_line;
+        end
+    end
+    
 
     ss=1;
 
